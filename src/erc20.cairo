@@ -1,8 +1,12 @@
 //This line defines a new Starknet contract module named cairo_token
-#[contract]
+#[starknet::contract]
 mod cairo_token{
     use starknet::ContractAddress; //The contract address is obviously address of the contract which is deployed on the starknet
     use starknet::get_caller_address; //Yes, the get_caller_address function in Cairo 1.0 is similar to msg.sender in Solidity
+    trait <ContractState> {
+        fn (ref self: ContractState, : ) -> ;
+        fn (self: @ContractState, : ) -> ;
+    }
 
     //In solidity we define the state varibales
     #[storage]
@@ -26,6 +30,32 @@ mod cairo_token{
         self.total_supply.write(_total_supply);
         self.decimal.write(_decimal);
     }
+
+    //The #[external(v0)] and #[generate_trait] decorators in Cairo 1.0 are used to define an interface for a smart contract and generate methods to interact with it, similar to how getter functions are used in Solidity.
+    //#[external(v0)]: This attribute marks a function as an external entry point for the smart contract. It indicates that this function can be called from outside the contract, such as by other contracts or external entities.#[generate_trait]: This attribute specifies that the following implementation block will be generating an implementation for a specific trait.impl CairoTokenTraitImpl of CairoTokenTrait: It's generating an implementation of a trait named CairoTokenTraitImpl based on the CairoTokenTrait trait.
+    #[external(v0)]
+        #[generate_trait]
+        impl CairoTokenTraitImpl of CairoTokenTrait{
+            //Getter function to get the name
+            fn name(self: @ContractState) -> felt252{
+                self.name.read();
+            }
+
+            //Getter function to get the owner
+            fn owner(self: @ContractState)-> ContractAddress {
+                self.owner.read();
+            }
+
+            //Getter function of the symbol
+            fn symbol(self: @ContractState) -> felt252 {
+                self.owner.read();
+            }
+
+            //Getter function of totalSupply
+            fn symbol(self: @ContractState) -> u256 {
+                self.total_supply.read();
+            }
+        }
 
     //Writing the mint function
     fn mint(ref self:ContractState,to: ContractAddress,amount: u256) {
@@ -75,32 +105,6 @@ mod cairo_token{
         self.allowances.write((sender, caller), self.allowances.read((sender, caller)) - amount);
         self._transfer(sender, to, amount);
     }
-
-    //The #[external(v0)] and #[generate_trait] decorators in Cairo 1.0 are used to define an interface for a smart contract and generate methods to interact with it, similar to how getter functions are used in Solidity.
-    //#[external(v0)]: This attribute marks a function as an external entry point for the smart contract. It indicates that this function can be called from outside the contract, such as by other contracts or external entities.#[generate_trait]: This attribute specifies that the following implementation block will be generating an implementation for a specific trait.impl CairoTokenTraitImpl of CairoTokenTrait: It's generating an implementation of a trait named CairoTokenTraitImpl based on the CairoTokenTrait trait.
-    #[external(v0)]
-        #[generate_trait]
-        impl CairoTokenTraitImpl of CairoTokenTrait{
-            //Getter function to get the name
-            fn name(self: @ContractState) -> felt252{
-                self.name.read();
-            }
-
-            //Getter function to get the owner
-            fn owner(self: @ContractState)-> ContractAddress {
-                self.owner.read();
-            }
-
-            //Getter function of the symbol
-            fn symbol(self: @ContractState) -> felt252 {
-                self.owner.read();
-            }
-
-            //Getter function of totalSupply
-            fn symbol(self: @ContractState) -> u256 {
-                self.total_supply.read();
-            }
-        }
 
     //Merko nahi malum kyaa hai ki yeh    
     #[generate_trait]
